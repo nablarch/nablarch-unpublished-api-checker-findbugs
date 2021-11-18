@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.nablarch.framework</groupId>
-  <artifactId>nablarch-unpublished-api-checker</artifactId>
+  <artifactId>nablarch-unpublished-api-checker-findbugs</artifactId>
   <version>5-NEXT-SNAPSHOT</version>
 
   <scm>
