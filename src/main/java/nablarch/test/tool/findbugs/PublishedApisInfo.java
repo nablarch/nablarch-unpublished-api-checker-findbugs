@@ -214,8 +214,8 @@ public final class PublishedApisInfo {
         calleeMethodSig = calleeMethodSig.replace('.', '/');
         Method[] methods = calleeJavaClass.getMethods();
         for (Method method : methods) {
-            String methodNameAndSig = new StringBuilder(method.getName()).append(method.getSignature()).toString();
-            if (methodNameAndSig.startsWith(new StringBuilder(calleeMethodName).append(calleeMethodSig).toString())) {
+            String methodNameAndSig = method.getName() + method.getSignature();
+            if (methodNameAndSig.startsWith(calleeMethodName + calleeMethodSig)) {
                 return method;
             }
         }
@@ -287,9 +287,7 @@ public final class PublishedApisInfo {
         // インタフェースに対して親クラスのチェックは行わない。
         if (!calleeJavaClass.isInterface()) {
             JavaClass superClass = calleeJavaClass.getSuperClass();
-            if (superClass != null && isPermittedForClassOrInterface(superClass, calleeMethodName, calleeMethodSig)) {
-                return true;
-            }
+            return superClass != null && isPermittedForClassOrInterface(superClass, calleeMethodName, calleeMethodSig);
         }
 
         return false;
@@ -317,11 +315,9 @@ public final class PublishedApisInfo {
             }
         }
 
-        StringBuilder calleeApi = new StringBuilder(calleeClassName);
-        calleeApi.append(".");
-        calleeApi.append(calleeMethodName);
-        calleeApi.append(getParsedParameter(parameter));
-        return calleeApi.toString();
+        return calleeClassName + "." +
+                calleeMethodName +
+                getParsedParameter(parameter);
     }
 
     /**
