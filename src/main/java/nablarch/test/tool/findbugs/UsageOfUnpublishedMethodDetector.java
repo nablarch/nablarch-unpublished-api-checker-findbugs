@@ -81,7 +81,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
         String[] throwsExceptions = methodSig.substring(index + 7).split(",");
         for (String exName : throwsExceptions) {
             exName = exName.trim();
-            if (!PublishedApisInfo.isPermitted(exName)) {
+            if (PublishedApisInfo.isProhibited(exName)) {
                 doBugReport(exName);
             }
         }
@@ -130,7 +130,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
                 int nameIndex = getCatchTypeIndex(codeException.getCatchType());
                 String exName = formatClassName(constants[nameIndex].toString()).replace('/', '.');
-                if (!PublishedApisInfo.isPermitted(exName)) {
+                if (PublishedApisInfo.isProhibited(exName)) {
                     doBugReport(exName);
                 }
             }
