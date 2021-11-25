@@ -59,7 +59,12 @@ public final class PublishedApisInfo {
         });
 
         for (File configFile : configFiles) {
-            readConfigFile(configFile);
+            try {
+                readConfigFile(configFile);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed in closing config file. Path=[" + configFile + "]", e);
+            }
+
         }
     }
 
@@ -68,7 +73,7 @@ public final class PublishedApisInfo {
      * 
      * @param configFile 設定ファイル
      */
-    private static void readConfigFile(File configFile) {
+    private static void readConfigFile(File configFile) throws IOException {
 
         BufferedReader reader = null;
         try {
@@ -82,19 +87,12 @@ public final class PublishedApisInfo {
                     publishedPackageOrClassSet.add(line);
                 }
             }
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(
-                    "Couldn't find config file. Path=[" + configFile + "]", e);
         } catch (IOException e) {
             throw new RuntimeException(
                     "Couldn't read config file. Path=[" + configFile + "]", e);
         } finally {
             if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed in closing config file. Path=[" + configFile + "]", e);
-                }
+                reader.close();
             }
         }
     }
@@ -163,13 +161,13 @@ public final class PublishedApisInfo {
     }
 
     /**
-     * 指定したクラスが公開されているか否かをチェックする。
+     * 指定したクラスが使用禁止されているか否かをチェックする。
      * 
      * @param calleeClassName チェック対象クラス名
-     * @return 指定したクラスが公開されている場合、{@code true}
+     * @return 指定したクラスが使用禁止されている場合、{@code true}
      */
-    static boolean isPermitted(String calleeClassName) {
-        return checkForClassOrPackage(calleeClassName.replace('$', '.'));
+    static boolean isProhibited(String calleeClassName) {
+        return !checkForClassOrPackage(calleeClassName.replace('$', '.'));
     }
 
     /**
@@ -185,7 +183,7 @@ public final class PublishedApisInfo {
             throws ClassNotFoundException {
 
         // ")"以後には戻り値の型が記述されているが、以後考慮しないため、切り捨てる。
-        calleeMethodSig = calleeMethodSig.substring(0, calleeMethodSig.indexOf(")") + 1);
+        calleeMethodSig = calleeMethodSig.substring(0, calleeMethodSig.indexOf(')') + 1);
         Method method = getMethodOf(calleeJavaClass, calleeMethodName, calleeMethodSig);
         if (method != null) {
             // privateメソッドチェックしない
@@ -213,8 +211,8 @@ public final class PublishedApisInfo {
         calleeMethodSig = calleeMethodSig.replace('.', '/');
         Method[] methods = calleeJavaClass.getMethods();
         for (Method method : methods) {
-            String methodNameAndSig = new StringBuilder(method.getName()).append(method.getSignature()).toString();
-            if (methodNameAndSig.startsWith(new StringBuilder(calleeMethodName).append(calleeMethodSig).toString())) {
+            String methodNameAndSig = method.getName() + method.getSignature();
+            if (methodNameAndSig.startsWith(calleeMethodName + calleeMethodSig)) {
                 return method;
             }
         }
@@ -286,9 +284,7 @@ public final class PublishedApisInfo {
         // インタフェースに対して親クラスのチェックは行わない。
         if (!calleeJavaClass.isInterface()) {
             JavaClass superClass = calleeJavaClass.getSuperClass();
-            if (superClass != null && isPermittedForClassOrInterface(superClass, calleeMethodName, calleeMethodSig)) {
-                return true;
-            }
+            return superClass != null && isPermittedForClassOrInterface(superClass, calleeMethodName, calleeMethodSig);
         }
 
         return false;
@@ -305,22 +301,20 @@ public final class PublishedApisInfo {
      */
     static String getCalleeApi(String calleeClassName, String calleeMethodName, String calleeMethodSig) {
 
-        String parameter = calleeMethodSig.substring(calleeMethodSig.indexOf("(") + 1, calleeMethodSig.lastIndexOf(")"));
+        String parameter = calleeMethodSig.substring(calleeMethodSig.indexOf('(') + 1, calleeMethodSig.lastIndexOf(')'));
 
         // コンストラクタ対応
         if ("<init>".equals(calleeMethodName)) {
-            if (calleeClassName.indexOf("$") != -1) {
-                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf("$") + 1);
+            if (calleeClassName.indexOf('$') != -1) {
+                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf('$') + 1);
             } else {
-                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf(".") + 1);
+                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf('.') + 1);
             }
         }
 
-        StringBuilder calleeApi = new StringBuilder(calleeClassName);
-        calleeApi.append(".");
-        calleeApi.append(calleeMethodName);
-        calleeApi.append(getParsedParameter(parameter));
-        return calleeApi.toString();
+        return calleeClassName + "." +
+                calleeMethodName +
+                getParsedParameter(parameter);
     }
 
     /**
@@ -385,7 +379,7 @@ public final class PublishedApisInfo {
                 parameter.append("long");
                 break;
             case 'L':
-                int refenceEnd = beforeParameter.indexOf(";", i);
+                int refenceEnd = beforeParameter.indexOf(';', i);
                 String reference = beforeParameter.substring(i + 1, refenceEnd);
                 i = refenceEnd;
                 parameter.append(reference);
