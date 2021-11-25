@@ -348,8 +348,7 @@ public class PublishedApisInfoTest {
                 fail();
             } catch (RuntimeException e) {
                 assertThat(e.getMessage(), containsString("Couldn't read config file."));
-                assertThat(e.getMessage(), containsString("src" + FS + "test" + FS + "java" + FS + "nablarch" + FS + "test"
-                        + FS + "tool" + FS + "findbugs" + FS + "data" + FS + "publishedapi" + FS + "settings" + FS + "subinterface"));
+                assertThat(e.getMessage(), containsString(new File("src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface").toString()));
             }
         }
 
@@ -369,8 +368,7 @@ public class PublishedApisInfoTest {
                 fail();
             } catch (RuntimeException e) {
                 assertThat(e.getMessage(), containsString("Failed in closing config file."));
-                assertThat(e.getMessage(), containsString("src" + FS + "test" + FS + "java" + FS + "nablarch" + FS + "test"
-                        + FS + "tool" + FS + "findbugs" + FS + "data" + FS + "publishedapi" + FS + "settings" + FS + "subinterface"));
+                assertThat(e.getMessage(), containsString(new File("src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface").toString()));
             }
         }
     }
