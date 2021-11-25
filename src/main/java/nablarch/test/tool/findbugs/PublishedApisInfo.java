@@ -59,7 +59,12 @@ public final class PublishedApisInfo {
         });
 
         for (File configFile : configFiles) {
-            readConfigFile(configFile);
+            try {
+                readConfigFile(configFile);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed in closing config file. Path=[" + configFile + "]", e);
+            }
+
         }
     }
 
@@ -68,7 +73,7 @@ public final class PublishedApisInfo {
      * 
      * @param configFile 設定ファイル
      */
-    private static void readConfigFile(File configFile) {
+    private static void readConfigFile(File configFile) throws IOException {
 
         BufferedReader reader = null;
         try {
@@ -90,11 +95,7 @@ public final class PublishedApisInfo {
                     "Couldn't read config file. Path=[" + configFile + "]", e);
         } finally {
             if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed in closing config file. Path=[" + configFile + "]", e);
-                }
+                reader.close();
             }
         }
     }
