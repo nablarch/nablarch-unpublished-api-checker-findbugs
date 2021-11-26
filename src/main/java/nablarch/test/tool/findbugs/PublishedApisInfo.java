@@ -6,7 +6,6 @@ import org.apache.bcel.classfile.Method;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -381,7 +380,7 @@ public final class PublishedApisInfo {
             case 'L':
                 int refenceEnd = beforeParameter.indexOf(';', i);
                 String reference = beforeParameter.substring(i + 1, refenceEnd);
-                i = refenceEnd;
+                i = refenceEnd; // NOSONAR for文内でカウンタ変数を更新すると警告が出るがclassname分カウンタを進める必要があるので警告抑止
                 parameter.append(reference);
                 break;
             case 'S':
